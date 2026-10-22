@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chart2midi Studio</title>
+<style>
+:root{--a:#ff3158;--bg:#090b12;--p:#121725;--b:#30394d;--t:#f4f6ff;--m:#9ba6bd}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#22233a,var(--bg) 65%);color:var(--t);font:14px system-ui,Arial}
+header{padding:19px;border-bottom:1px solid var(--b);background:#090b12;position:sticky;top:0;z-index:3}
+.logo{font-weight:950;letter-spacing:2px;font-size:25px}.logo span{color:var(--a);text-shadow:0 0 16px var(--a)}
+.sub{color:var(--m);font-size:10px;letter-spacing:2px}
+main{max-width:1400px;margin:auto;padding:15px;display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px}
+.panel{background:linear-gradient(145deg,var(--p),#0d1019);border:1px solid var(--b);border-radius:15px;padding:15px;min-width:0}
+h2{font-size:13px;letter-spacing:1.4px;text-transform:uppercase;margin:0 0 13px}
+h3{font-size:11px;color:var(--m);text-transform:uppercase;margin:19px 0 7px}
+label{display:block;font-size:12px;color:var(--m);margin:10px 0 5px}
+input:not([type=checkbox]),select{width:100%;padding:10px;background:#090c13;color:var(--t);border:1px solid var(--b);border-radius:8px}
+input[type=file]{font-size:12px;color:var(--m);padding:7px 0}
+button{padding:10px 12px;border:1px solid var(--b);border-radius:9px;background:#1a2030;color:var(--t);font-weight:700;cursor:pointer}
+button:hover{border-color:var(--a)}
+.primary{background:var(--a);border-color:var(--a);color:white}
+.row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.row button{flex:1}
+.check{display:flex;align-items:center;gap:8px;color:var(--t);font-size:12px;margin:12px 0}.check input{accent-color:var(--a)}
+.small{font-size:11px;color:var(--m);line-height:1.6}
+.status{background:#080a10;border:1px solid var(--b);border-radius:9px;padding:10px;font-size:12px;color:var(--m);overflow-wrap:anywhere;margin-top:10px}
+.workspace{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#090c14;border:1px solid var(--b);border-radius:9px;padding:12px}
+.stat strong{display:block;font-size:22px;color:var(--a)}.stat span{font-size:10px;color:var(--m);text-transform:uppercase}
+.rollwrap{overflow:auto;max-width:100%;border:1px solid var(--b);border-radius:10px;background:#080a11;touch-action:pan-x pan-y}
+#roll{display:block;height:370px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--m);margin:10px 0}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+footer{text-align:center;border-top:1px solid var(--b);padding:20px;color:var(--m);font-size:12px}
+footer a{color:var(--a);text-decoration:none;margin:0 9px}
+@media(max-width:800px){main{grid-template-columns:1fr;padding:9px}header{padding:14px}.panel{padding:12px}#roll{height:330px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">CHART<span>2MIDI</span></div>
+ <div class="sub">DEVELOPED BY PRIME SHADOW · LOCAL ENGINE</div>
+</header>
+<main>
+<aside class="panel">
+ <h2>Chart Converter</h2>
+ <label for="file">FNF chart JSON</label>
+ <input id="file" type="file" accept=".json,application/json">
+ <label for="format">Chart format</label>
+ <select id="format">
+  <option value="auto">Auto detect</option>
+  <option value="psych">Psych Engine</option>
+  <option value="vslice">V-Slice</option>
+ </select>
+ <h3>Timing & Notes</h3>
+ <label for="bpm">BPM</label>
+ <input id="bpm" type="number" min="20" max="400" value="120">
+ <label for="minlen">Minimum note length (ms)</label>
+ <input id="minlen" type="number" min="20" max="500" value="100">
+ <label for="maxlen">Maximum generated note length (ms)</label>
+ <input id="maxlen" type="number" min="40" max="2000" value="600">
+ <label for="sustain">Sustain handling</label>
+ <select id="sustain">
+  <option value="preserve">Preserve chart sustain</option>
+  <option value="estimate">Estimate note lengths</option>
+ </select>
+ <label for="quant">Quantization</label>
+ <select id="quant">
+  <option value="0">Off</option><option value="4">1/4 beat</option>
+  <option value="8">1/8 beat</option><option value="16">1/16 beat</option>
+ </select>
+ <label for="octave">Pitch shift</label>
+ <select id="octave">
+  <option value="0">None</option><option value="12">+1 octave</option><option value="-12">-1 octave</option>
+ </select>
+ <label class="check"><input id="mono" type="checkbox"> Trim overlaps per track</label>
+ <h3>Appearance</h3>
+ <label for="theme">Neon theme</label>
+ <select id="theme">
+  <option value="red">Red</option><option value="blue">Blue</option>
+  <option value="yellow">Yellow</option><option value="green">Green</option>
+  <option value="white">White</option><option value="black">Black</option>
+ </select>
+ <label for="language">Language</label>
+ <select id="language">
+  <option>English</option><option>Turkish</option><option>Spanish</option>
+  <option>Russian</option><option>Malay</option><option>Portuguese</option>
+  <option>Korean</option><option>Arabic</option><option>Japanese</option><option>Hindi</option>
+ </select>
+ <div class="row">
+  <button class="primary" id="convert">Convert to mid</button>
+  <button id="download" disabled>Download mid</button>
+ </div>
+ <div class="status" id="status">Select a Psych or V-Slice chart JSON file.</div>
+</aside>
+<section class="workspace">
+ <div class="panel">
+  <h2>Chart Overview</h2>
+  <div class="stats">
+   <div class="stat"><strong id="total">0</strong><span>Total notes</span></div>
+   <div class="stat"><strong id="opp">0</strong><span>Opponent</span></div>
+   <div class="stat"><strong id="player">0</strong><span>Player</span></div>
+  </div>
+  <p id="info" class="small">No chart loaded.</p>
+ </div>
+ <div class="panel">
+  <h2>Piano Roll</h2>
+  <p class="small">Scroll horizontally to view the chart. Opponent notes are red; Player notes are blue.</p>
+  <div class="legend"><span><i class="dot" style="background:#ff435d"></i>Opponent</span><span><i class="dot" style="background:#3c8bff"></i>Player</span></div>
+  <div class="rollwrap" id="rollwrap"><canvas id="roll" width="1000" height="370"></canvas></div>
+  <div class="row"><button id="zoomout">− Zoom</button><button id="zoomin">+ Zoom</button><button id="fit">Fit chart</button></div>
+ </div>
+ <div class="panel">
+  <h2>MIDI Output</h2>
+  <p class="small">Exports exactly two MIDI tracks: Opponent and Player. MIDI does not contain instrument audio; assign instruments in FL Studio Mobile.</p>
+  <div class="status" id="midiStatus">MIDI not generated yet.</div>
+ </div>
+</section>
+</main>
+<footer>
+ <div>CHART2MIDI · STUDIO EDITION</div>
+ <div style="margin-top:10px">
+  <a href="https://www.tiktok.com/@prime_shadowtr" target="_blank" rel="noopener">TikTok</a>
+  <a href="https://youtube.com/@turkiye_primeshadow?si=5ubJRF32b5XR0XIv" target="_blank" rel="noopener">YouTube</a>
+  <a href="https://github.com/primeshadowTR" target="_blank" rel="noopener">GitHub</a>
+ </div>
+</footer>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const number=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
+let notes=[],prepared=[],midi=null,filename="",zoom=.09;
+
+function setStatus(s){$("status").textContent=s}
+
+function psychParse(root){
+ const song=root.song&&typeof root.song==="object"?root.song:root;
+ if(!Array.isArray(song.notes))return null;
+ const out=[];
+ for(const section of song.notes){
+  if(!Array.isArray(section.sectionNotes))continue;
+  const mustHit=section.mustHitSection===true;
+  for(const row of section.sectionNotes){
+   if(!Array.isArray(row)||row.length<2)continue;
+   const lane=number(row[1]);
+   const isPlayer=(lane>=4)===mustHit;
+   out.push({
+    time:Math.max(0,number(row[0])),
+    lane:Math.abs(lane)%4,
+    duration:Math.max(0,number(row[2])),
+    side:isPlayer?"player":"opponent",
+    pitch:(isPlayer?60:48)+(Math.abs(lane)%4),
+    velocity:100
+   });
+  }
+ }
+ return {notes:out,bpm:number(song.bpm,120),format:"Psych Engine"};
+}
+
+function walk(obj,fn,seen=new Set()){
+ if(!obj||typeof obj!=="object"||seen.has(obj))return;
+ seen.add(obj);fn(obj);
+ if(Array.isArray(obj))obj.forEach(x=>walk(x,fn,seen));
+ else Object.values(obj).forEach(x=>walk(x,fn,seen));
+}
+
+function vsliceParse(root){
+ const out=[];let bpm=number(root.bpm,0);
+ walk(root,obj=>{
+  if(!obj||Array.isArray(obj))return;
+  if(!bpm&&obj.bpm)bpm=number(obj.bpm,0);
+  if(!Array.isArray(obj.notes))return;
+  for(const n of obj.notes){
+   if(!n||typeof n!=="object"||Array.isArray(n))continue;
+   const time=n.timeMs??n.strumTime??n.time??n.timestamp;
+   const lane=number(n.lane??n.direction??n.noteData??n.data,0);
+   const duration=number(n.lengthMs??n.sustainLength??n.duration??n.holdTime,0);
+   const owner=String(n.owner??n.side??n.character??n.type??"").toLowerCase();
+   let side=/player|boyfriend|\bbf\b/.test(owner)?"player":"opponent";
+   if(n.mustPress===true||n.isPlayer===true||n.player===true)side="player";
+   if(n.mustPress===false||n.isPlayer===false)side="opponent";
+   if(time!==undefined&&Number.isFinite(Number(time))&&Number(time)>=0){
+    out.push({time:Number(time),lane:Math.abs(lane)%4,duration:Math.max(0,duration),side,pitch:(side==="player"?60:48)+(Math.abs(lane)%4),velocity:100});
+   }
+  }
+ });
+ return out.length?{notes:out,bpm:bpm||120,format:"V-Slice"}:null;
+}
+
+function parseRoot(root){
+ const f=$("format").value;
+ if(f==="psych")return psychParse(root);
+ if(f==="vslice")return vsliceParse(root);
+ return psychParse(root)||vsliceParse(root);
+}
+
+async function loadFile(file){
+ try{
+  const root=JSON.parse(await file.text());
+  const result=parseRoot(root);
+  if(!result||!result.notes.length){setStatus("No recognizable notes found. Check the selected chart format.");return}
+  notes=result.notes;filename=file.name;
+  $("bpm").value=clamp(result.bpm||120,20,400);
+  update();
+  setStatus(`Loaded ${result.format}: ${notes.length} notes.`);
+ }catch(e){setStatus("Could not read chart JSON: "+e.message)}
+}
+$("file").addEventListener("change",e=>{if(e.target.files[0])loadFile(e.target.files[0])});
+$("format").addEventListener("change",()=>{if($("file").files[0])loadFile($("file").files[0])});
+
+$("file").addEventListener("click",()=>{});
+function prepare(){
+ const out=notes.map(n=>({...n}));
+ const bpm=clamp(number($("bpm").value,120),20,400),beat=60000/bpm;
+ const minLen=clamp(number($("minlen").value,100),20,500);
+ const maxLen=clamp(number($("maxlen").value,600),40,2000);
+ for(const side of ["player","opponent"]){
+  const group=out.filter(n=>n.side===side).sort((a,b)=>a.time-b.time);
+  for(let i=0;i<group.length;i++){
+   const n=group[i],next=group[i+1],gap=next?next.time-n.time:beat;
+   if($("sustain").value==="preserve"&&n.duration>0)n.duration=Math.max(1,n.duration);
+   else n.duration=clamp(gap>0?gap*.85:beat*.75,minLen,Math.min(maxLen,beat*1.5));
+  }
+ }
+ const shift=number($("octave").value,0);
+ out.forEach(n=>n.pitch=clamp(n.pitch+shift,0,127));
+ const q=number($("quant").value,0);
+ if(q){const step=beat*4/q;out.forEach(n=>n.time=Math.max(0,Math.round(n.time/step)*step))}
+ if($("mono").checked){
+  for(const side of ["player","opponent"]){
+   const group=out.filter(n=>n.side===side).sort((a,b)=>a.time-b.time);
+   for(let i=0;i<group.length-1;i++){
+    const gap=group[i+1].time-group[i].time;
+    if(gap>0)group[i].duration=Math.min(group[i].duration,gap);
+   }
+  }
+ }
+ return out.filter(n=>n.duration>0&&Number.isFinite(n.time));
+}
+
+function update(){
+ $("total").textContent=notes.length;
+ $("opp").textContent=notes.filter(n=>n.side==="opponent").length;
+ $("player").textContent=notes.filter(n=>n.side==="player").length;
+ $("info").textContent=filename?`${filename} · ${notes.length} notes`:"No chart loaded.";
+ draw();
+}
+
+function draw(){
+ const c=$("roll"),ctx=c.getContext("2d");
+ const bpm=clamp(number($("bpm").value,120),20,400),beat=60000/bpm;
+ const maxTime=Math.max(4000,...notes.map(n=>n.time+Math.max(n.duration,beat)+500));
+ const width=Math.max(850,Math.ceil(70+maxTime*zoom));
+ c.width=width;c.height=370;c.style.width=width+"px";
+ ctx.fillStyle="#080a11";ctx.fillRect(0,0,width,370);
+ const top=20,bottom=25,rowH=(370-top-bottom)/12;
+ for(let r=0;r<12;r++){
+  const y=top+r*rowH;
+  ctx.fillStyle=r%2?"#0c101a":"#101522";ctx.fillRect(0,y,width,rowH);
+  ctx.strokeStyle="#252c3d";ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(width,y);ctx.stroke();
+ }
+ for(let t=0;t<=maxTime;t+=beat/2){
+  const x=58+t*zoom;
+  ctx.strokeStyle=Math.round(t/beat)%4===0?"#46506a":"#252b3d";
+  ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,345);ctx.stroke();
+  if(Math.abs(t%(beat*4))<1){ctx.fillStyle="#9ba6bd";ctx.font="10px sans-serif";ctx.fillText(String(Math.round(t/(beat*4)+1)),x+3,13)}
+ }
+ notes.forEach(n=>{
+  const pitch=n.pitch-60,y=top+(11-clamp(pitch,0,11))*rowH;
+  const x=58+n.time*zoom,w=Math.max(5,(n.duration||80)*zoom);
+  ctx.fillStyle=n.side==="player"?"#3c8bff":"#ff435d";
+  ctx.beginPath();ctx.roundRect(x,y+2,w,rowH-4,4);ctx.fill();
+ });
+}
+
+$("zoomin").onclick=()=>{zoom=Math.min(.5,zoom*1.25);draw()};
+$("zoomout").onclick=()=>{zoom=Math.max(.02,zoom/1.25);draw()};
+$("fit").onclick=()=>{
+ const max=Math.max(4000,...notes.map(n=>n.time+n.duration+500));
+ zoom=clamp(($("rollwrap").clientWidth-70)/max,.02,.5);draw();
+};
+window.addEventListener("resize",draw);
+
+function vl(v){
+ let n=Math.max(0,Math.floor(v)),b=n&127,out=[];
+ while(n>>=7){b<<=8;b|=((n&127)|128)}
+ while(true){out.push(b&255);if(b&128)b>>=8;else break}
+ return out;
+}
+function ascii(s){return Array.from(s,c=>c.charCodeAt(0))}
+function u16(n){return[(n>>8)&255,n&255]}
+function u32(n){return[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255]}
+function chunk(id,data){return[...ascii(id),...u32(data.length),...data]}
+
+function makeTrack(name,list,bpm,tempo){
+ const ev=[];
+ ev.push({tick:0,order:0,data:[255,3,...vl(name.length),...ascii(name)]});
+ if(tempo){
+  const mpqn=Math.round(60000000/bpm);
+  ev.push({tick:0,order:1,data:[255,81,3,(mpqn>>16)&255,(mpqn>>8)&255,mpqn&255]});
+ }
+ for(const n of list){
+  const start=Math.max(0,Math.round(n.time*bpm*480/60000));
+  const end=Math.max(start+1,Math.round((n.time+n.duration)*bpm*480/60000));
+  const p=clamp(Math.round(n.pitch),0,127),v=clamp(Math.round(n.velocity||100),1,127);
+  ev.push({tick:start,order:3,data:[144,p,v]});
+  ev.push({tick:end,order:2,data:[128,p,0]});
+ }
+ ev.sort((a,b)=>a.tick-b.tick||a.order-b.order);
+ let last=0,data=[];
+ for(const e of ev){data.push(...vl(e.tick-last),...e.data);last=e.tick}
+ data.push(0,255,47,0);
+ return chunk("MTrk",data);
+}
+
+function buildMidi(list,bpm){
+ const header=[...ascii("MThd"),...u32(6),...u16(1),...u16(2),...u16(480)];
+ const opponent=makeTrack("Opponent",list.filter(n=>n.side==="opponent"),bpm,true);
+ const player=makeTrack("Player",list.filter(n=>n.side==="player"),bpm,false);
+ return new Uint8Array([...header,...opponent,...player]);
+}
+
+$("convert").onclick=()=>{
+ if(!notes.length){setStatus("Load a chart JSON first.");return}
+ try{
+  prepared=prepare();
+  if(!prepared.length){setStatus("No notes available for MIDI export.");return}
+  const bpm=clamp(number($("bpm").value,120),20,400);
+  midi=buildMidi(prepared,bpm);
+  $("download").disabled=false;
+  $("midiStatus").textContent=`Ready · ${prepared.length} notes · exactly 2 tracks: Opponent + Player · ${bpm} BPM`;
+  setStatus("Conversion complete. Download your MIDI file.");
+ }catch(e){midi=null;$("download").disabled=true;setStatus("Conversion failed: "+e.message)}
+};
+
+$("download").onclick=()=>{
+ if(!midi)return;
+ const blob=new Blob([midi],{type:"audio/midi"}),url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download=(filename||"chart").replace(/\.json$/i,"").replace(/[^\w-]+/g,"_")+".mid";
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),2000);
+};
+
+const themes={red:"#ff3158",blue:"#3c8bff",yellow:"#ffd43b",green:"#36e68a",white:"#f5f6ff",black:"#9299ad"};
+$("theme").onchange=()=>{document.documentElement.style.setProperty("--a",themes[$("theme").value]);draw()};
+$("language").onchange=()=>{
+ if($("language").value==="Turkish")setStatus("Chart JSON dosyanı yükle, Convert to mid düğmesine bas ve MIDI dosyanı indir.");
+ else setStatus("Load a chart JSON, convert it, and download the MIDI file.");
+};
+draw();
+</script>
+</body>
+</html>
